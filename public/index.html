@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropSend - Share Files up to 100MB with 6-Digit Code</title>
+  <meta name="description" content="Send files up to 100MB securely. Generates a 6-digit code to download on any other device even when the sender is offline. Set expiration to 1 day, 1 week, or 1 month.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="glow-bg top-left"></div>
+  <div class="glow-bg bottom-right"></div>
+  <div class="grid-overlay"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+            <path d="M12 12v9"></path>
+            <path d="m16 16-4-4-4 4"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>DropSend</h1>
+          <span class="brand-badge">100 MB Code Transfer</span>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <span class="status-indicator"></span>
+        <span class="status-text">Server Online &amp; Persisted</span>
+      </div>
+    </header>
+
+    <!-- Main Card -->
+    <main class="main-card glass-panel">
+      <!-- Mode Tabs -->
+      <nav class="tabs-nav" aria-label="Transfer options">
+        <button type="button" class="tab-btn active" id="tabSend" data-tab="send">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Send File</span>
+        </button>
+        <button type="button" class="tab-btn" id="tabReceive" data-tab="receive">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Receive File</span>
+        </button>
+      </nav>
+
+      <!-- ================= SECTION 1: SEND ================= -->
+      <section id="panelSend" class="tab-panel active">
+        <!-- Initial Upload View -->
+        <div id="uploadView">
+          <div class="hero-text">
+            <h2>Send any file up to 100 MB</h2>
+            <p>Upload your file, pick how long it stays available, and get a 6-digit code. The recipient can download it from any device even if your computer is completely turned off.</p>
+          </div>
+
+          <!-- Dropzone -->
+          <div class="dropzone" id="dropzone" tabindex="0">
+            <input type="file" id="fileInput" class="file-input-hidden" aria-label="Choose file to upload">
+            <div class="dropzone-content">
+              <div class="dropzone-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </div>
+              <div class="dropzone-label">
+                <strong>Click to choose a file</strong> or drag &amp; drop here
+              </div>
+              <div class="dropzone-sub">Supports any file type up to 100 Megabytes</div>
+            </div>
+          </div>
+
+          <!-- Selected File Card (Hidden until file selected) -->
+          <div class="selected-file-card hidden" id="selectedFileCard">
+            <div class="file-card-icon" id="fileCardIcon">
+              📄
+            </div>
+            <div class="file-card-details">
+              <div class="file-card-name" id="fileNameDisplay">filename.ext</div>
+              <div class="file-card-meta">
+                <span id="fileSizeDisplay">0 MB</span>
+                <span class="file-size-status valid" id="fileSizeStatus">✓ Under 100MB</span>
+              </div>
+            </div>
+            <button type="button" class="btn-icon" id="btnRemoveFile" title="Remove selected file" aria-label="Remove selected file">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Expiration Settings -->
+          <div class="form-group expiry-group">
+            <label class="group-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Time Selection Window (Expiry)
+            </label>
+            <div class="expiry-grid" role="radiogroup" aria-label="Select expiration period">
+              <label class="expiry-pill active">
+                <input type="radio" name="duration" value="1d" checked>
+                <div class="pill-content">
+                  <span class="pill-title">1 Day</span>
+                  <span class="pill-badge">Recommended</span>
+                  <span class="pill-sub">Expires in 24 hours</span>
+                </div>
+              </label>
+
+              <label class="expiry-pill">
+                <input type="radio" name="duration" value="1w">
+                <div class="pill-content">
+                  <span class="pill-title">1 Week</span>
+                  <span class="pill-sub">Expires in 7 days</span>
+                </div>
+              </label>
+
+              <label class="expiry-pill">
+                <input type="radio" name="duration" value="1m">
+                <div class="pill-content">
+                  <span class="pill-title">1 Month</span>
+                  <span class="pill-sub">Expires in 30 days</span>
+                </div>
+              </label>
+
+              <label class="expiry-pill">
+                <input type="radio" name="duration" value="1h">
+                <div class="pill-content">
+                  <span class="pill-title">1 Hour</span>
+                  <span class="pill-sub">Quick burn transfer</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- Extra Options -->
+            <div class="options-row">
+              <label class="checkbox-label">
+                <input type="checkbox" id="checkBurnAfterDownload">
+                <span class="custom-checkbox"></span>
+                <span>🔥 Burn immediately after first download</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Upload Submit Button -->
+          <button type="button" class="btn-primary full-width" id="btnUpload" disabled>
+            <span class="btn-text">Generate 6-Digit Download Code</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Upload Progress View (Hidden until upload begins) -->
+        <div id="uploadProgressView" class="hidden">
+          <div class="progress-box">
+            <div class="progress-icon-spin">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              </svg>
+            </div>
+            <h3>Uploading to Cloud Storage...</h3>
+            <p class="progress-sub">Please wait while your file is securely transferred to the server.</p>
+
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="progressBarFill" style="width: 0%"></div>
+            </div>
+
+            <div class="progress-stats">
+              <span id="progressPercent">0%</span>
+              <span id="progressTransferred">0 MB / 0 MB</span>
+              <span id="progressSpeed">0 MB/s</span>
+            </div>
+
+            <button type="button" class="btn-secondary" id="btnCancelUpload">Cancel Upload</button>
+          </div>
+        </div>
+
+        <!-- Upload Success View (Hidden until upload finishes) -->
+        <div id="uploadSuccessView" class="hidden">
+          <div class="success-header">
+            <div class="success-badge">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h3>File Uploaded Successfully!</h3>
+            <p class="success-notice">
+              <strong>Your file is safely stored on the server.</strong> You can now close this tab, shut down your computer, or leave. The recipient can download it anytime before expiration.
+            </p>
+          </div>
+
+          <!-- The 6-Digit Code Display -->
+          <div class="code-card">
+            <div class="code-label">6-DIGIT DOWNLOAD CODE</div>
+            <div class="code-display" id="generatedCodeDisplay">
+              <span class="code-group" id="codePart1">---</span>
+              <span class="code-divider">•</span>
+              <span class="code-group" id="codePart2">---</span>
+            </div>
+            <div class="code-actions">
+              <button type="button" class="btn-copy" id="btnCopyCode">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy Code</span>
+              </button>
+              <button type="button" class="btn-copy" id="btnShowQr">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>View QR Code</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Direct Link Section -->
+          <div class="direct-link-box">
+            <label class="link-label">Or share direct download link:</label>
+            <div class="link-input-group">
+              <input type="text" id="directLinkInput" readonly value="">
+              <button type="button" class="btn-link-copy" id="btnCopyLink">Copy</button>
+            </div>
+          </div>
+
+          <!-- Uploaded Metadata summary -->
+          <div class="file-summary-card">
+            <div class="summary-row">
+              <span class="summary-label">Filename:</span>
+              <span class="summary-val" id="successFileName">-</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">File Size:</span>
+              <span class="summary-val" id="successFileSize">-</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Expires On:</span>
+              <span class="summary-val highlight" id="successExpiryDate">-</span>
+            </div>
+          </div>
+
+          <div class="success-footer">
+            <button type="button" class="btn-primary" id="btnSendAnother">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              <span>Send Another File</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 2: RECEIVE ================= -->
+      <section id="panelReceive" class="tab-panel">
+        <div class="hero-text">
+          <h2>Download File with Code</h2>
+          <p>Got a 6-digit code from the sender? Enter it below to download your file instantly to this device.</p>
+        </div>
+
+        <!-- 6-Digit Code Input Form -->
+        <form id="receiveForm" class="receive-form" onsubmit="return false;">
+          <div class="otp-container" id="otpContainer">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" aria-label="Digit 1" autofocus>
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 2">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 3">
+            <span class="otp-separator">-</span>
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 4">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 5">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="Digit 6">
+          </div>
+
+          <div class="receive-actions">
+            <button type="submit" class="btn-primary full-width" id="btnFetchFile">
+              <span class="btn-text">Find &amp; Download File</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+          </div>
+        </form>
+
+        <!-- Loading spinner for lookup -->
+        <div id="receiveLoading" class="receive-status-box hidden">
+          <div class="spinner"></div>
+          <p>Looking up code on server...</p>
+        </div>
+
+        <!-- Error Card (Invalid code or expired) -->
+        <div id="receiveError" class="receive-error-card hidden">
+          <div class="error-icon">⚠️</div>
+          <h4 id="receiveErrorTitle">File Not Found or Expired</h4>
+          <p id="receiveErrorMessage">Please check the 6-digit code and ensure the file hasn't passed its expiration window.</p>
+          <button type="button" class="btn-secondary" id="btnTryAgain">Try Another Code</button>
+        </div>
+
+        <!-- File Found Card (Ready to download) -->
+        <div id="receiveSuccess" class="file-ready-card hidden">
+          <div class="ready-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>File Ready for Download</span>
+          </div>
+
+          <div class="ready-file-info">
+            <div class="ready-icon" id="readyIcon">📦</div>
+            <div class="ready-details">
+              <h3 id="readyFileName">example-file.zip</h3>
+              <div class="ready-meta">
+                <span class="meta-tag" id="readyFileSize">0 MB</span>
+                <span class="meta-tag" id="readyMimeType">File</span>
+                <span class="meta-tag countdown" id="readyCountdown">Expires in ...</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="server-status-pill">
+            <span class="green-dot"></span>
+            <span>Server Stored • Ready to download regardless of sender status</span>
+          </div>
+
+          <div class="ready-download-action">
+            <button type="button" class="btn-primary btn-large full-width" id="btnTriggerDownload">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download File Now</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Features / Assurance Section -->
+    <footer class="app-footer">
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <strong>Up to 100 MB</strong>
+            <span>Generous file limits for presentations, videos, and archives.</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">☁️</div>
+          <div class="feature-text">
+            <strong>True Cloud Persistence</strong>
+            <span>Sender can close their browser/laptop right after upload finishes.</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⏳</div>
+          <div class="feature-text">
+            <strong>Flexible Expiration</strong>
+            <span>Choose 1 Day, 1 Week, or 1 Month with automatic file deletion.</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text">
+            <strong>Simple 6-Digit Code</strong>
+            <span>Easy to memorize and type on any mobile phone or computer.</span>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        DropSend &bull; Fast, Secure, Server-Backed File Drop
+      </div>
+    </footer>
+  </div>
+
+  <!-- QR Code Modal Dialog -->
+  <div id="qrModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="qrModalTitle">Scan to Download</h3>
+        <button type="button" class="btn-modal-close" id="btnCloseQr" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="qr-container">
+          <img id="qrCodeImg" src="" alt="QR Code to download file">
+        </div>
+        <p class="qr-help">Scan with your smartphone camera to immediately open the download page on mobile.</p>
+        <div class="qr-code-pill" id="qrCodeNumber">Code: ------</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
